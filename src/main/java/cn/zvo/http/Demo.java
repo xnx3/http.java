@@ -11,12 +11,12 @@ import java.util.Map;
 public class Demo {
 	
 	public static void main(String[] args) throws IOException {
-//		get(); //get 请求
+		get(); //get 请求
 //		post(); //post 请求
 //		post_payload(); //post - payload 请求
-		headers(); //自定义请求头 headers 
-		put(); //put 请求，payload 提交数据
-		cookies(); //请求时自动携带cookies
+		//headers(); //自定义请求头 headers 
+//		put(); //put 请求，payload 提交数据
+		//cookies(); //请求时自动携带cookies
 	}
 	
 	/**
@@ -64,7 +64,7 @@ public class Demo {
 	 * @throws IOException
 	 */
 	public static void put() throws IOException {
-		String url = "https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token=123"; //请求url
+		String url = "http://xxxx.com"; //请求url
 		String payload = "payload content"; //提交的 payload 数据内容
 		Response response = new Http().put(url, payload, null);
 		System.out.println(response.getContent());
