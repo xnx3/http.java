@@ -117,6 +117,90 @@ public class Response {
 		return headerFields;
 	}
 
+	public void setUrlString(String urlString) {
+		this.urlString = urlString;
+	}
+
+	public void setDefaultPort(int defaultPort) {
+		this.defaultPort = defaultPort;
+	}
+
+	public void setFile(String file) {
+		this.file = file;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
+	}
+
+	public void setQuery(String query) {
+		this.query = query;
+	}
+
+	public void setRef(String ref) {
+		this.ref = ref;
+	}
+
+	public void setUserInfo(String userInfo) {
+		this.userInfo = userInfo;
+	}
+
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
+	public void setCode(int code) {
+		this.code = code;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public void setMethod(String method) {
+		this.method = method;
+	}
+
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = connectTimeout;
+	}
+
+	public void setReadTimeout(int readTimeout) {
+		this.readTimeout = readTimeout;
+	}
+
+	public void setCookie(String cookie) {
+		this.cookie = cookie;
+	}
+
+	public void setHeaderFields(Map<String, List<String>> headerFields) {
+		this.headerFields = headerFields;
+	}
+
+	public void setContentCollection(Vector<String> contentCollection) {
+		this.contentCollection = contentCollection;
+	}
+
 	@Override
 	public String toString() {
 		return "HttpResponse [urlString=" + urlString + ", defaultPort="
