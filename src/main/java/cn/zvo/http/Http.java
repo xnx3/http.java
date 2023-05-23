@@ -4,11 +4,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException; 
-import java.io.InputStream; 
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection; 
 import java.net.MalformedURLException;
 import java.net.URL; 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -319,10 +321,15 @@ public class Http {
    
         if(data != null && data.length() > 0) {
         	// 建立输入流，向指向的URL传入参数
-        	DataOutputStream dos=new DataOutputStream(urlConnection.getOutputStream());
-        	dos.writeBytes(data);
-        	dos.flush();
-        	dos.close();
+//        	DataOutputStream dos=new DataOutputStream(urlConnection.getOutputStream());
+//        	dos.writeBytes(data);
+//        	dos.flush();
+//        	dos.close();
+        	
+        	PrintWriter writer = new PrintWriter(urlConnection.getOutputStream());
+			writer.print(data);
+			writer.flush();
+			writer.close();
         }
 
         return this.makeContent(url, urlConnection); 
@@ -346,11 +353,9 @@ public class Http {
         urlConnection.setSSLSocketFactory(sc.getSocketFactory());
         urlConnection.setHostnameVerifier(new TrustAnyHostnameVerifier());
         
-        
         urlConnection.setRequestMethod(method); 
-        urlConnection.setDoOutput(true); 
-        urlConnection.setDoInput(true); 
-        urlConnection.setUseCaches(false); 
+       
+//        urlConnection.setUseCaches(false); 
         urlConnection.setRequestProperty("Cookie", this.cookies);
    
         if (headers != null) {
@@ -358,13 +363,24 @@ public class Http {
                 urlConnection.addRequestProperty(key, headers.get(key)); 
             } 
         }
+        if(data != null && data.length()>0){
+        	headers.put("Content-Length", data.length()+"");
+        }
+        
+        urlConnection.setDoInput(true); 
+        urlConnection.setDoOutput(true); 
    
         if(data != null && data.length() > 0) {
         	// 建立输入流，向指向的URL传入参数
-        	DataOutputStream dos=new DataOutputStream(urlConnection.getOutputStream());
-        	dos.writeBytes(data);
-        	dos.flush();
-        	dos.close();
+//        	DataOutputStream dos=new DataOutputStream(urlConnection.getOutputStream());
+//        	dos.writeBytes(data);
+//        	dos.flush();
+//        	dos.close();
+        	
+        	PrintWriter writer = new PrintWriter(urlConnection.getOutputStream());
+			writer.print(data);
+			writer.flush();
+			writer.close();
         }
 
         return this.makeContent(url, urlConnection); 
@@ -392,6 +408,9 @@ public class Http {
         	        if (statusCode != 200) {
         	        	in = httpConn.getErrorStream();
         	        }
+        	    }
+        	    if(in == null) {
+        	    	in = new ByteArrayInputStream(ioe.getMessage().getBytes(StandardCharsets.UTF_8));
         	    }
         	}
             
