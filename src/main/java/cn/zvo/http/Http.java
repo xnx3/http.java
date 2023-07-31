@@ -262,7 +262,9 @@ public class Http {
     	 StringBuffer paramString = new StringBuffer(); 
     	 if (!method.equalsIgnoreCase(METHOD_GET) && params != null) { 
     		 for (String key : params.keySet()) { 
-    			 paramString.append("&"); 
+    			 if(paramString.length() > 0) {
+    				 paramString.append("&");  
+    			 }
     			 paramString.append(key).append("=").append(params.get(key)); 
     		 }
     	 }
