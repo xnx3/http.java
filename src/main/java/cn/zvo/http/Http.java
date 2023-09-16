@@ -422,6 +422,7 @@ public class Http {
             while ((length = in.read(buffer)) != -1) {
                 result.write(buffer, 0, length);
             }
+            httpResponser.outputStream = result;
             httpResponser.content = result.toString(this.encode);
             
             httpResponser.urlString = url; 

@@ -1,5 +1,6 @@
 package cn.zvo.http;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -32,6 +33,8 @@ public class Response {
 	public Map<String, List<String>> headerFields;
  
 	public Vector<String> contentCollection;
+	public ByteArrayOutputStream outputStream; //v1.3 增加
+	
  
 	public String getContent() {
 		return content;
@@ -201,19 +204,24 @@ public class Response {
 		this.contentCollection = contentCollection;
 	}
 
+	public ByteArrayOutputStream getOutputStream() {
+		return outputStream;
+	}
+
+	public void setOutputStream(ByteArrayOutputStream outputStream) {
+		this.outputStream = outputStream;
+	}
+
 	@Override
 	public String toString() {
-		return "HttpResponse [urlString=" + urlString + ", defaultPort="
-				+ defaultPort + ", file=" + file + ", host=" + host + ", path="
-				+ path + ", port=" + port + ", protocol=" + protocol
-				+ ", query=" + query + ", ref=" + ref + ", userInfo="
-				+ userInfo + ", contentEncoding=" + contentEncoding
-				+ ", content=" + content + ", contentType=" + contentType
-				+ ", code=" + code + ", message=" + message + ", method="
-				+ method + ", connectTimeout=" + connectTimeout
-				+ ", readTimeout=" + readTimeout + ", cookie=" + cookie
-				+ ", headerFields=" + headerFields + ", contentCollection="
-				+ contentCollection + "]";
+		return "Response [urlString=" + urlString + ", defaultPort=" + defaultPort + ", file=" + file + ", host=" + host
+				+ ", path=" + path + ", port=" + port + ", protocol=" + protocol + ", query=" + query + ", ref=" + ref
+				+ ", userInfo=" + userInfo + ", contentEncoding=" + contentEncoding + ", content=" + content
+				+ ", contentType=" + contentType + ", code=" + code + ", message=" + message + ", method=" + method
+				+ ", connectTimeout=" + connectTimeout + ", readTimeout=" + readTimeout + ", cookie=" + cookie
+				+ ", headerFields=" + headerFields + ", contentCollection=" + contentCollection + ", outputStream="
+				+ outputStream + "]";
 	}
+
 	
 }
