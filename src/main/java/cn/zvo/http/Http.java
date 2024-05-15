@@ -50,8 +50,22 @@ public class Http {
     private String encode; 	//默认编码格式
     private String cookies="";	//每次请求都用自动发送此cookies,请求完毕后自动更新此cookies
     private int timeout = 30000;	//超时时间，默认30秒
+    private String sslProtocol = "SSL"; //
+    
+    
+    public String getSslProtocol() {
+		return sslProtocol;
+	}
     
     /**
+     * 设置 https 请求的 SSLContext.getInstance(...)
+     * @param sslProtocol 传入如  SSL、TLS、TLSv1.2
+     */
+	public void setSslProtocol(String sslProtocol) {
+		this.sslProtocol = sslProtocol;
+	}
+
+	/**
      * 设置超时时间
      * @param secend 单位：秒
      */
@@ -339,9 +353,17 @@ public class Http {
     
     Response sendHttps(String url, String method, String data, 
             Map<String, String> headers) throws IOException { 
+//    	System.setProperty("https.protocols", "TLSv1.2,TLSv1.1,SSLv3");
+    	
+    	HostnameVerifier hv = new HostnameVerifier() {
+            public boolean verify(String urlHostName, SSLSession session) {
+                return true;
+            }
+        };
+    	
     	SSLContext sc = null;
 		try {
-			sc = SSLContext.getInstance("SSL");
+			sc = SSLContext.getInstance(sslProtocol);
 		} catch (NoSuchAlgorithmException e1) {
 			e1.printStackTrace();
 		}
@@ -350,6 +372,10 @@ public class Http {
 		} catch (KeyManagementException e) {
 			e.printStackTrace();
 		}
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        
+        HttpsURLConnection.setDefaultHostnameVerifier(hv);
+        
         URL console = new URL(url);
         HttpsURLConnection urlConnection = (HttpsURLConnection) console.openConnection();
         urlConnection.setSSLSocketFactory(sc.getSocketFactory());
@@ -460,9 +486,10 @@ public class Http {
             httpResponser.readTimeout = urlConnection.getReadTimeout(); 
             httpResponser.headerFields = urlConnection.getHeaderFields();
         } catch (IOException e) {
-        	e.printStackTrace();
+//        	e.printStackTrace();
         	httpResponser.code = 0;
         	httpResponser.message = e.getMessage();
+        	throw e;
         } finally { 
             if (urlConnection != null) 
                 urlConnection.disconnect(); 
@@ -542,13 +569,27 @@ public class Http {
     }
     
     
-    public static class TrustAnyTrustManager implements X509TrustManager {
-        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+    public static class TrustAnyTrustManager implements TrustManager,X509TrustManager {
+    	public X509Certificate[] getAcceptedIssuers() {
+            return null;
         }
-        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+        public boolean isServerTrusted(X509Certificate[] certs) {
+            return true;
         }
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[]{};
+
+        public boolean isClientTrusted(X509Certificate[] certs) {
+            return true;
+        }
+
+        public void checkServerTrusted(X509Certificate[] certs, String authType)
+                throws CertificateException {
+            return;
+        }
+
+        public void checkClientTrusted(X509Certificate[] certs, String authType)
+                throws CertificateException {
+            return;
         }
     }
     public static class TrustAnyHostnameVerifier implements HostnameVerifier {
