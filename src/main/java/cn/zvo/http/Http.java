@@ -386,14 +386,18 @@ public class Http {
 //        urlConnection.setUseCaches(false); 
         urlConnection.setRequestProperty("Cookie", this.cookies);
    
+        if(data != null && data.length()>0){
+        	if(headers == null) {
+        		headers = new HashMap<String, String>();
+        	}
+        	headers.put("Content-Length", data.length()+"");
+        }
         if (headers != null) {
         	for (String key : headers.keySet()) { 
                 urlConnection.addRequestProperty(key, headers.get(key)); 
             } 
         }
-        if(data != null && data.length()>0){
-        	headers.put("Content-Length", data.length()+"");
-        }
+        
         
         urlConnection.setDoInput(true); 
         urlConnection.setDoOutput(true); 
