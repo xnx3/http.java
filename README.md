@@ -16,7 +16,7 @@
 <dependency> 
 	<groupId>cn.zvo.http</groupId>
 	<artifactId>http</artifactId>
-	<version>1.2</version>
+	<version>1.5</version>
 </dependency>
 ````
 
