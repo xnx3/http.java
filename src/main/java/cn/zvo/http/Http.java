@@ -634,13 +634,12 @@ public class Http {
     
     
 	/**
-	 * 通过curl命令的方式获取网页源码
+	 * 通过curl命令的方式获取网页源码 ， 支持提前设置 setTimeout
 	 * @param url 传入如 https://xxxx.com/ab.html
-	 * @param encode 编码，传入如 UTF-8  GBK
 	 * @return result == success 则成功，info返回源码
 	 * @throws IOException 
 	 */
-	public static BaseVO getPageResourceByCurl(String url) throws IOException {
+	public BaseVO getPageResourceByCurl(String url) throws IOException {
 		BaseVO codeVO = getHttpCodeByCurl(url);
 		if(codeVO.getResult() - BaseVO.FAILURE == 0) {
 			return codeVO;
@@ -649,7 +648,7 @@ public class Http {
 			return BaseVO.failure("http response code is "+codeVO.getInfo());
 		}
 		
-		String command = "curl --max-time 6 "+url;
+		String command = "curl --max-time "+this.timeout+" "+url;
         String text = "";
         Process process = Runtime.getRuntime().exec(command);
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -662,16 +661,17 @@ public class Http {
     }
 	
 	/**
-	 * get方式获取一个url的响应码，这里只是获取响应码，并不获取响应内容
+	 * get方式获取一个url的响应码，这里只是获取响应码，并不获取响应内容。
+	 * 支持提前设置 setTimeout
 	 * @param url 绝对网址
 	 * @return result == success 则成功，info返回响应码
 	 */
-	public static BaseVO getHttpCodeByCurl(String url) {
+	public BaseVO getHttpCodeByCurl(String url) {
 		int code = -1;
 		
 		try {
             // 使用 ProcessBuilder 执行 curl 命令并获取响应码
-            ProcessBuilder pb = new ProcessBuilder("curl", "-I", "-o", "/dev/null","--max-time","6", "-s", "-w", "%{http_code}", url);
+            ProcessBuilder pb = new ProcessBuilder("curl", "-I", "-o", "/dev/null","--max-time",this.timeout+"", "-s", "-w", "%{http_code}", url);
             Process process = pb.start();
 
             // 读取输出
