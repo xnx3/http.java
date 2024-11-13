@@ -1,13 +1,17 @@
 package cn.zvo.http;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException; 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection; 
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL; 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -25,6 +29,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import com.xnx3.BaseVO;
+import com.xnx3.Lang;
 
 /**
  * http 、https 网络请求
@@ -319,10 +326,22 @@ public class Http {
     	}
     }
     
+    public Proxy proxy;
+    public void setProxy(String address, int port) {
+    	proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(address, port));
+    }
+    
     Response sendHttp(String url, String method, String data, 
             Map<String, String> headers) throws IOException { 
         URL requestURL = new URL(url); 
-        HttpURLConnection urlConnection = (HttpURLConnection) requestURL.openConnection(); 
+        
+        HttpURLConnection urlConnection = null;
+        if(proxy == null) {
+        	urlConnection = (HttpURLConnection) requestURL.openConnection(); 
+        }else {
+        	urlConnection = (HttpURLConnection) requestURL.openConnection(proxy); 
+        }
+        
         urlConnection.setRequestMethod(method); 
         urlConnection.setDoOutput(true); 
         urlConnection.setDoInput(true); 
@@ -332,6 +351,11 @@ public class Http {
         if (headers != null) {
         	for (String key : headers.keySet()) { 
                 urlConnection.addRequestProperty(key, headers.get(key)); 
+//                if(key.equalsIgnoreCase("Content-Type")) {
+//                	if(headers.get(key).toLowerCase().indexOf("multipart/form-data") > -1) {
+//                		urlConnection.setRequestProperty("Content-Type", headers.get(key));
+//                	}
+//                }
             } 
         }
    
@@ -377,7 +401,13 @@ public class Http {
         HttpsURLConnection.setDefaultHostnameVerifier(hv);
         
         URL console = new URL(url);
-        HttpsURLConnection urlConnection = (HttpsURLConnection) console.openConnection();
+        HttpsURLConnection urlConnection = null;
+        if(proxy == null) {
+        	urlConnection = (HttpsURLConnection) console.openConnection();
+        }else {
+        	urlConnection = (HttpsURLConnection) console.openConnection(proxy);
+        }
+        
         urlConnection.setSSLSocketFactory(sc.getSocketFactory());
         urlConnection.setHostnameVerifier(new TrustAnyHostnameVerifier());
         
@@ -602,4 +632,67 @@ public class Http {
         }
     }
     
+    
+	/**
+	 * 通过curl命令的方式获取网页源码
+	 * @param url 传入如 https://xxxx.com/ab.html
+	 * @param encode 编码，传入如 UTF-8  GBK
+	 * @return result == success 则成功，info返回源码
+	 * @throws IOException 
+	 */
+	public static BaseVO getPageResourceByCurl(String url) throws IOException {
+		BaseVO codeVO = getHttpCodeByCurl(url);
+		if(codeVO.getResult() - BaseVO.FAILURE == 0) {
+			return codeVO;
+		}
+		if(!codeVO.getInfo().equals("200")) {
+			return BaseVO.failure("http response code is "+codeVO.getInfo());
+		}
+		
+		String command = "curl --max-time 6 "+url;
+        String text = "";
+        Process process = Runtime.getRuntime().exec(command);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine())!= null) {
+            text += line+"\n";
+        }
+        
+        return BaseVO.success(text);
+    }
+	
+	/**
+	 * get方式获取一个url的响应码，这里只是获取响应码，并不获取响应内容
+	 * @param url 绝对网址
+	 * @return result == success 则成功，info返回响应码
+	 */
+	public static BaseVO getHttpCodeByCurl(String url) {
+		int code = -1;
+		
+		try {
+            // 使用 ProcessBuilder 执行 curl 命令并获取响应码
+            ProcessBuilder pb = new ProcessBuilder("curl", "-I", "-o", "/dev/null","--max-time","6", "-s", "-w", "%{http_code}", url);
+            Process process = pb.start();
+
+            // 读取输出
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String responseCode = reader.readLine();
+            
+            code = Lang.stringToInt(responseCode, -1);
+            
+            process.waitFor();
+            reader.close();
+            
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return BaseVO.failure(e.getMessage());
+        }
+		
+		if(code > -1) {
+			return BaseVO.success(code+"");
+		}else {
+			return BaseVO.failure("http code gain failure");
+		}
+	}
+	
 }

@@ -6,7 +6,7 @@
 
 	<groupId>cn.zvo.http</groupId>
 	<artifactId>http</artifactId>
-	<version>1.5</version>
+	<version>1.6</version>
 	<packaging>jar</packaging>
 
 	<name>http</name>
@@ -101,6 +101,14 @@
 			</plugin>  -->
 		</plugins>
 	</build>
+	
+	<dependencies>
+		<dependency> 
+	        <groupId>com.xnx3.util</groupId>
+			<artifactId>xnx3-util</artifactId>
+	        <version>1.28</version>  
+	    </dependency>
+	</dependencies>
 	
 	<distributionManagement>
 		<snapshotRepository>

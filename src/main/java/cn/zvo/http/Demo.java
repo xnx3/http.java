@@ -24,7 +24,9 @@ public class Demo {
 	 * @throws IOException
 	 */
 	public static void get() throws IOException {
-		Response response = new Http().get("http://www.guanleiming.com");
+		Http http = new Http();
+		http.setSslProtocol("TLS");
+		Response response = http.get("https://www.szppsa.cn/");
 		System.out.println(response);
 	}
 	
