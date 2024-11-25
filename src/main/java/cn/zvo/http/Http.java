@@ -32,6 +32,7 @@ import javax.net.ssl.X509TrustManager;
 
 import com.xnx3.BaseVO;
 import com.xnx3.Lang;
+import com.xnx3.Log;
 
 /**
  * http 、https 网络请求
@@ -347,7 +348,7 @@ public class Http {
         urlConnection.setDoInput(true); 
         urlConnection.setUseCaches(false); 
         urlConnection.setRequestProperty("Cookie", this.cookies);
-   
+        
         if (headers != null) {
         	for (String key : headers.keySet()) { 
                 urlConnection.addRequestProperty(key, headers.get(key)); 
@@ -483,7 +484,37 @@ public class Http {
                 result.write(buffer, 0, length);
             }
             httpResponser.outputStream = result;
-            httpResponser.content = result.toString(this.encode);
+            httpResponser.headerFields = urlConnection.getHeaderFields();
+            
+            if(httpResponser.headerFields != null) {
+            	List<String> list = httpResponser.headerFields.get("Content-Encoding");
+            	if(list != null) {
+            		String ce = null;
+            		for(int i = 0; i<list.size(); i++) {
+                		if(list.get(i) != null && list.get(i).length() > 0) {
+                			ce = list.get(i).trim();
+                		}
+                	}
+            		if(ce != null) {
+                		//是被压缩的
+                		
+                		if(ce.equalsIgnoreCase("gzip")) {
+                			byte[] bs = Unzip.unGzip(httpResponser.outputStream.toByteArray());
+                			httpResponser.content = new String(bs, Charset.forName(this.encode));
+                		}else if(ce.equalsIgnoreCase("deflate")) {
+                			byte[] bs = Unzip.unDeflate(httpResponser.outputStream.toByteArray());
+                			httpResponser.content = new String(bs, Charset.forName(this.encode));
+                		}else if(ce.equalsIgnoreCase("br")) {
+                			Log.error("Content-Encoding:br 方式压缩的还没加入解压方法，可联系 mail@xnx3.com 升级");
+                		}else {
+                			Log.error("Content-Encoding:"+ce+" 方式压缩的还没加入解压方法，可联系 mail@xnx3.com 升级");
+                		}
+                	}
+            	}
+            }
+            if(httpResponser.content == null) {
+            	httpResponser.content = result.toString(this.encode);
+            }
             
             httpResponser.urlString = url; 
             //urlConnection.getHeaderField("Set-Cookie");获取到的COOKIES不全，会将JSESSIONID漏掉，故而采用此中方式
@@ -518,7 +549,7 @@ public class Http {
             httpResponser.method = urlConnection.getRequestMethod(); 
             httpResponser.connectTimeout = urlConnection.getConnectTimeout(); 
             httpResponser.readTimeout = urlConnection.getReadTimeout(); 
-            httpResponser.headerFields = urlConnection.getHeaderFields();
+            
         } catch (IOException e) {
 //        	e.printStackTrace();
         	httpResponser.code = 0;
@@ -695,4 +726,28 @@ public class Http {
 		}
 	}
 	
+
+	/**
+	 * 解压缩，也就是
+	 * @param gzipData
+	 * @return
+	 * @throws IOException
+	 */
+    public static byte[] unbr(byte[] gzipData) throws IOException {
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(gzipData);
+        GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = gzipInputStream.read(buffer))!= -1) {
+            byteArrayOutputStream.write(buffer, 0, len);
+        }
+
+        gzipInputStream.close();
+        byteArrayInputStream.close();
+
+        return byteArrayOutputStream.toByteArray();
+    }
 }
