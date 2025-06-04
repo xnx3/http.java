@@ -3,7 +3,6 @@ package cn.zvo.http;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException; 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,10 +28,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-
 import com.xnx3.BaseVO;
-import com.xnx3.Lang;
-import com.xnx3.Log;
+//import com.xnx3.Lang;
+//import com.xnx3.Log;
 
 /**
  * http 、https 网络请求
@@ -505,9 +503,9 @@ public class Http {
                 			byte[] bs = Unzip.unDeflate(httpResponser.outputStream.toByteArray());
                 			httpResponser.content = new String(bs, Charset.forName(this.encode));
                 		}else if(ce.equalsIgnoreCase("br")) {
-                			Log.error("Content-Encoding:br 方式压缩的还没加入解压方法，可联系 mail@xnx3.com 升级");
+                			System.out.println("Content-Encoding:br 方式压缩的还没加入解压方法，可联系 mail@xnx3.com 升级");
                 		}else {
-                			Log.error("Content-Encoding:"+ce+" 方式压缩的还没加入解压方法，可联系 mail@xnx3.com 升级");
+                			System.out.println("Content-Encoding:"+ce+" 方式压缩的还没加入解压方法，可联系 mail@xnx3.com 升级");
                 		}
                 	}
             	}
@@ -709,7 +707,7 @@ public class Http {
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String responseCode = reader.readLine();
             
-            code = Lang.stringToInt(responseCode, -1);
+            code = stringToInt(responseCode, -1);
             
             process.waitFor();
             reader.close();
@@ -726,6 +724,28 @@ public class Http {
 		}
 	}
 	
+	/**
+	 * 字符型转换为整数型
+	 * @param param 待转换的字符串
+	 * @param defaultValue 异常后的返回值，默认值
+	 * @return 整数
+	 */
+	private static int stringToInt(String param,int defaultValue){
+		int xnx3_result=0;
+		
+		//首先判断字符串不能为空
+		if(param==null||param.equalsIgnoreCase("null")){
+			xnx3_result=defaultValue;
+		}else{
+			try {
+				xnx3_result=Integer.parseInt(param);
+			} catch (Exception e) {
+				xnx3_result=defaultValue;
+			}
+		}
+		
+		return xnx3_result;
+	}
 
 	/**
 	 * 解压缩，也就是
