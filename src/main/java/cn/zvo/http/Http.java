@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException; 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
@@ -279,17 +280,50 @@ public class Http {
              url = mapToUrl(url, params);
          } 
     	 
-    	 StringBuffer paramString = new StringBuffer(); 
-    	 if (!method.equalsIgnoreCase(METHOD_GET) && params != null) { 
-    		 for (String key : params.keySet()) { 
-    			 if(paramString.length() > 0) {
-    				 paramString.append("&");  
-    			 }
-    			 paramString.append(key).append("=").append(params.get(key)); 
+    	 //请求发送的data
+    	 String data = null;
+    	 
+    	 if(headers != null) {
+    		 String contentType = headers.get("Content-Type");
+    		 if(contentType != null && contentType.trim().equalsIgnoreCase("multipart/form-data")) {
+    			// 生成唯一的boundary
+	    	    String boundary = "===" + System.currentTimeMillis() + "===";
+
+	    	    // 确保headers中包含正确的Content-Type
+	    	    headers.put("Content-Type", contentType+"; boundary="+boundary);
+
+	    	    // 构造multipart/form-data请求体
+	    	    StringBuilder bodyBuilder = new StringBuilder();
+    	        for (Map.Entry<String, String> entry : params.entrySet()) {
+    	            String key = entry.getKey();
+    	            String value = entry.getValue();
+    	            bodyBuilder.append("--").append(boundary).append("\r\n");
+    	            bodyBuilder.append("Content-Disposition: form-data; name=\"").append(key).append("\"\r\n\r\n");
+    	            bodyBuilder.append(value).append("\r\n");
+    	        }
+    	        bodyBuilder.append("--").append(boundary).append("--\r\n");
+    	        data = bodyBuilder.toString();
     		 }
     	 }
+    	    
+    	    
+    	    
+    	 if(data == null) {
+    		 StringBuffer paramString = new StringBuffer(); 
+        	 if (!method.equalsIgnoreCase(METHOD_GET) && params != null) { 
+        		 for (String key : params.keySet()) { 
+        			 if(paramString.length() > 0) {
+        				 paramString.append("&");  
+        			 }
+        			 paramString.append(key).append("=").append(params.get(key)); 
+        		 }
+        	 }
+        	 data = paramString.toString();
+    	 }
     	 
-    	 return send(url, method, paramString.toString(), headers);
+    	 
+    	 
+    	 return send(url, method, data, headers);
     } 
 	
     /**
@@ -305,11 +339,12 @@ public class Http {
             Map<String, String> headers) throws IOException { 
     	String protocols = getProtocols(url);
     	if(protocols == null || protocols.length() == 0) {
-    		//协议未发现
-    		Response response = new Response();
-    		response.code = -1;
-    		response.content = "此url协议未发现，请传入完整的带有http://、https:// 协议的url。 当前传入的url:"+url;
-    		return response;
+    		//协议未发现,默认用http，因为有时候虚拟的就是不带协议的，比如docker中访问其他容器
+    		protocols = "http";
+//    		Response response = new Response();
+//    		response.code = -1;
+//    		response.content = "此url协议未发现，请传入完整的带有http://、https:// 协议的url。 当前传入的url:"+url;
+//    		return response;
     	}
     	
     	if(protocols.equalsIgnoreCase("http")) {
@@ -365,7 +400,18 @@ public class Http {
 //        	dos.flush();
 //        	dos.close();
         	
-        	PrintWriter writer = new PrintWriter(urlConnection.getOutputStream());
+        	PrintWriter writer = null;
+        	
+        	//multipart/form-data
+	    	if(headers != null) {
+	    		String contentType = headers.get("Content-Type");
+	    		if(contentType != null && contentType.trim().toLowerCase().indexOf("multipart/form-data") > -1) {
+	    			writer = new PrintWriter(new OutputStreamWriter(urlConnection.getOutputStream(), StandardCharsets.UTF_8), true);
+	    		}
+	    	}
+	    	if(writer == null) {
+	    		writer = new PrintWriter(urlConnection.getOutputStream());
+	    	}
 			writer.print(data);
 			writer.flush();
 			writer.close();
