@@ -337,6 +337,7 @@ public class Http {
      */
     public Response send(String url, String method, String data, 
             Map<String, String> headers) throws IOException { 
+    	//System.out.println(url+", method:"+method+", data:"+data+", headers:"+headers.toString());
     	String protocols = getProtocols(url);
     	if(protocols == null || protocols.length() == 0) {
     		//协议未发现,默认用http，因为有时候虚拟的就是不带协议的，比如docker中访问其他容器
@@ -375,6 +376,10 @@ public class Http {
         }else {
         	urlConnection = (HttpURLConnection) requestURL.openConnection(proxy); 
         }
+        
+        // 立即设置超时时间
+        urlConnection.setConnectTimeout(this.timeout);
+        urlConnection.setReadTimeout(this.timeout);
         
         urlConnection.setRequestMethod(method); 
         urlConnection.setDoOutput(true); 
@@ -456,6 +461,10 @@ public class Http {
         urlConnection.setSSLSocketFactory(sc.getSocketFactory());
         urlConnection.setHostnameVerifier(new TrustAnyHostnameVerifier());
         
+        // 立即设置超时时间
+        urlConnection.setConnectTimeout(this.timeout);
+        urlConnection.setReadTimeout(this.timeout);
+        
         urlConnection.setRequestMethod(method); 
        
 //        urlConnection.setUseCaches(false); 
@@ -501,8 +510,9 @@ public class Http {
      * @throws IOException IO异常
      */ 
     Response makeContent(String url, HttpURLConnection urlConnection) throws IOException { 
-    	urlConnection.setConnectTimeout(this.timeout);
-    	urlConnection.setReadTimeout(this.timeout);
+    	// 超时时间已在连接创建时设置
+    	// urlConnection.setConnectTimeout(this.timeout);
+    	// urlConnection.setReadTimeout(this.timeout);
         Response httpResponser = new Response(); 
         try { 
         	InputStream in = null;
