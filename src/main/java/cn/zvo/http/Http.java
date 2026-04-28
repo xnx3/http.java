@@ -226,18 +226,18 @@ public class Http {
 		}
 		
 		StringBuffer param = new StringBuffer(); 
-        
-        for (String key : params.keySet()) { 
-            if (i == 0){
-            	param.append("?");
-            }else{
-            	param.append("&");
-            }
-            param.append(key).append("=").append(params.get(key)); 
-            i++; 
-        } 
-        url += param; 
-        return url;
+	        
+	        for (String key : params.keySet()) { 
+	            if (i == 0){
+	            	param.append("?");
+	            }else{
+	            	param.append("&");
+	            }
+	            param.append(key).append("=").append(encode(params.get(key))); 
+	            i++; 
+	        } 
+	        url += param; 
+	        return url;
 	}
 	
 	/**
@@ -246,27 +246,45 @@ public class Http {
 	 * @return 返回url拼接的key、value，返回如： key=value&amp;key=value
 	 */
 	public static String mapToQueryString(Map<String,String> params){
-    	String data = "";
-    	StringBuffer param = new StringBuffer(); 
-        if(params != null){
-        	int i = 0; 
-            for (Map.Entry<String, String> entry : params.entrySet()) {  
-            	if (i > 0){
-                	param.append("&");
-                }
-                param.append(entry.getKey()).append("=").append(entry.getValue()); 
-                i++; 
-            }
-        }
-        if(param.length()>0){
-        	data = param.toString();
-        }
-        return data;
+	    	String data = "";
+	    	StringBuffer param = new StringBuffer(); 
+	        if(params != null){
+	        	int i = 0; 
+	            for (Map.Entry<String, String> entry : params.entrySet()) {  
+	            	if (i > 0){
+	                	param.append("&");
+	                }
+	                param.append(entry.getKey()).append("=").append(encode(entry.getValue())); 
+	                i++; 
+	            }
+	        }
+	        if(param.length()>0){
+	        	data = param.toString();
+	        }
+	        return data;
 	}
-    
+	
+	/**
+	 * 对参数值进行最小兼容转义，避免破坏 key=value&amp;key=value 的拼接结构
+	 * @param text 参数值
+	 * @return 转义后的参数值
+	 */
+	public static String encode(String text) {
+		if(text == null) {
+			return null;
+		}
+		if(text.indexOf("&") > -1) {
+			text = text.replace("&", "%26");
+		}
+		if(text.indexOf("=") > -1) {
+			text = text.replace("=", "%3D");
+		}
+		return text;
+	}
+	    
 
-    /**
-     * 发送请求
+	    /**
+	     * 发送请求
      * @param url 目标URL地址,传入如 http://www.zvo.cn/index.html
      * @param method 请求方式，如get、post请求等。传入如 {@link #METHOD_POST}
      * @param params 添加由键值对指定的请求参数
@@ -305,21 +323,21 @@ public class Http {
     	        data = bodyBuilder.toString();
     		 }
     	 }
-    	    
-    	    
-    	    
-    	 if(data == null) {
-    		 StringBuffer paramString = new StringBuffer(); 
-        	 if (!method.equalsIgnoreCase(METHOD_GET) && params != null) { 
-        		 for (String key : params.keySet()) { 
-        			 if(paramString.length() > 0) {
-        				 paramString.append("&");  
-        			 }
-        			 paramString.append(key).append("=").append(params.get(key)); 
-        		 }
-        	 }
-        	 data = paramString.toString();
-    	 }
+	    	 
+	    	    
+	    	    
+	    	 if(data == null) {
+	    		 StringBuffer paramString = new StringBuffer(); 
+	        	 if (!method.equalsIgnoreCase(METHOD_GET) && params != null) { 
+	        		 for (String key : params.keySet()) { 
+	        			 if(paramString.length() > 0) {
+	        				 paramString.append("&");  
+	        			 }
+	        			 paramString.append(key).append("=").append(encode(params.get(key))); 
+	        		 }
+	        	 }
+	        	 data = paramString.toString();
+	    	 }
     	 
     	 
     	 
